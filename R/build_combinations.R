@@ -1,4 +1,4 @@
-#' @title Returns the a list of combinations of hyperparameters
+  #' @title Returns the a list of combinations of hyperparameters
 #'
 #' @description Returns the a list of combinations given by arrays
 #' @param learning_rate an array that represents the differents learning rates of the networks.
@@ -16,7 +16,7 @@ build_combinations <- function(
   learning_rate = c(0.01, 0.04, 0.06, 0.1, 0.14),
   num_hidden = c(1, 2, 3, 4, 5),
   num_neurons = c(100, 200, 400, 500),
-  dropout_hidden = c(0.5, 0.4, 0.3, 0.2, 0.1)
+  dropout_hidden = seq(0.95, 0.5, -0.05)
   ) {
   return(
     as.list(

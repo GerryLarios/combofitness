@@ -12,20 +12,23 @@
 #' @return the report of the neural network.
 #' @aliases
 #' @examples
-combofitnets <- function(data_main, target, data_trn, data_tst, combinations) {
 
-  if(missing(data_trn) || missing(data_tst)) {
-    train_sample <- take_train_sample(data_main)
-    data_trn <- build_data_train(data_main, train_sample)
-    data_tst <- build_data_test(data_main, train_sample)
+combofitnets <- function(data_main, target, output = "linear", combinations, data_trn, data_tst, data_vld) {
+
+  if(missing(data_trn) || missing(data_tst) || missing(data_vld)) {
+    samples <- create_data_samples(data_main)
+    data_trn <- data_main[samples == 1, ]
+    data_tst <- data_main[samples == 2, ]
+    data_vld <- data_main[samples == 3, ]
   }
 
   if(missing(combinations)) {
     combinations <- build_combinations()
   }
-
   results <- data.frame()
   num_comb <- length(combinations$learning_rate)
+  best_net <-list()
+  current_mse <- 100
   for (i in 1:num_comb) {
     id <- i
     learning_rate <- combinations$learning_rate[i]
@@ -38,14 +41,23 @@ combofitnets <- function(data_main, target, data_trn, data_tst, combinations) {
       learningrate = learning_rate,
       hidden = rep.int(num_neurons, num_hidden),
       hidden_dropout = dropout_hidden,
-      output = "linear"
+      output = output
     )
     mse <- calculate_mse(data_target = data_tst, nn.predict(nn = net, x = data_tst))
+    if(mse < current_mse) {
+      best_net <- net
+      current_mse <- mse
+    }
     print(paste(toString(i)," - ", toString(mse)))
     result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, mse)
     results <- rbind(results, result)
   }
   results <- sorting_result(results)
-  create_table_results(results)
-  return(results)
+  create_table_results(results, name = toString(paste("report", output, sep = "_")))
+
+  mse_vld <- calculate_mse(data_target = data_vld, nn.predict(nn = best_net, x = data_vld))
+  print(paste("VALIDATE - MSE: ", toString(mse_vld)))
+  print(best_net)
+  print(get_best_comb(results))
+  return(as.list(results, best_net))
 }
