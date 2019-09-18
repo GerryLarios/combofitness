@@ -54,10 +54,8 @@ combofitnets <- function(data_main, target, output = "linear", combinations, dat
   }
   results <- sorting_result(results)
   create_table_results(results, name = toString(paste("report", output, sep = "_")))
-
   mse_vld <- calculate_mse(data_target = data_vld, nn.predict(nn = best_net, x = data_vld))
   print(paste("VALIDATE - MSE: ", toString(mse_vld)))
-  print(best_net)
   print(get_best_comb(results))
-  return(as.list(results, best_net))
+  return(best_net)
 }
