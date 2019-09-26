@@ -10,6 +10,6 @@
 #' @aliases
 #' @examples
 
-calculate_mse <- function(data_target, predicted) {
+calculate_mse <- function(predicted, data_target) {
   return(mean((data_target[, ncol(data_target)] - predicted)^2))
 }

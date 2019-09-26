@@ -15,6 +15,7 @@
 
 combofitnets <- function(data_main, target, output = "linear", combinations, data_trn, data_tst, data_vld) {
 
+  # take the samples
   if(missing(data_trn) || missing(data_tst) || missing(data_vld)) {
     samples <- create_data_samples(data_main)
     data_trn <- data_main[samples == 1, ]
@@ -22,19 +23,26 @@ combofitnets <- function(data_main, target, output = "linear", combinations, dat
     data_vld <- data_main[samples == 3, ]
   }
 
-  if(missing(combinations)) {
+  # build combinations
+  if(missing(combinations))
     combinations <- build_combinations()
-  }
+
+  # instance the report data frame
   results <- data.frame()
   num_comb <- length(combinations$learning_rate)
   best_net <-list()
+
   current_mse <- 100
+
   for (i in 1:num_comb) {
+    # append current hyperparameters
     id <- i
     learning_rate <- combinations$learning_rate[i]
     num_hidden <- combinations$num_hidden[i]
     num_neurons <- combinations$num_neurons[i]
     dropout_hidden <- combinations$dropout_hidden[i]
+
+    # treaning net
     net <- nn.train(
       x = as.matrix(data_main),
       y = as.matrix(target),
@@ -43,21 +51,39 @@ combofitnets <- function(data_main, target, output = "linear", combinations, dat
       hidden_dropout = dropout_hidden,
       output = output
     )
-    mse <- calculate_mse(data_target = data_tst, nn.predict(nn = net, x = data_tst))
+
+    #mse testing
+    mse <- calculate_mse(nn.predict(nn = net, x = data_tst), data_target = data_tst)
+    # mse validate
+    mse_validate <- calculate_mse( nn.predict(nn = net, x = data_vld), data_target = data_vld)
+
+    # change to best mse (testing)
     if(mse < current_mse) {
       best_net <- net
       current_mse <- mse
     }
+
+    # Printe current results
     print(paste(toString(i)," - ", toString(mse)))
-    result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, mse)
+    print(paste(toString(i)," - ", toString(mse_validate), ' [VALIDATE]'))
+
+    # Make data frame report
+    result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, mse, mse_validate)
     results <- rbind(results, result)
+
   }
+
+  # make csv report
   results <- sorting_result(results)
   create_table_results(results, name = toString(paste("report", output, sep = "_")))
 
-  mse_vld <- calculate_mse(data_target = data_vld, nn.predict(nn = best_net, x = data_vld))
-  print(paste("VALIDATE - MSE: ", toString(mse_vld)))
-  print(best_net)
+  # make validation of the best net
+  mse_vld <- calculate_mse(nn.predict(nn = best_net, x = data_vld), data_target = data_vld)
+
+  # print best net
+  print("BEST NET")
   print(get_best_comb(results))
-  return(as.list(results, best_net))
+  print(paste("VALIDATE - MSE: ", toString(mse_vld)))
+
+  return(results)
 }
