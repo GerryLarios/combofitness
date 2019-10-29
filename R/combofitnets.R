@@ -13,8 +13,15 @@
 #' @aliases
 #' @examples
 
-combofitnets <- function(data_main, target, output = "linear", combinations, data_trn, data_tst, data_vld) {
-
+combofitnets <- function(
+  data_main,
+  target,
+  output = "linear",
+  combinations,
+  data_trn,
+  data_tst,
+  data_vld
+  ) {
   # take the samples
   if(missing(data_trn) || missing(data_tst) || missing(data_vld)) {
     samples <- create_data_samples(data_main)
