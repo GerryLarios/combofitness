@@ -1,4 +1,4 @@
-#' @title Combinatios of hyperparameters to train neural networks
+#' @title Combinatios of hyperparameters to train neural networks with binary outputs
 #'
 #' @description Create a report and returns the best combination of hyperparameters to train a neural network.
 #' @param data_main a data.frame that represents the sample
@@ -13,10 +13,10 @@
 #' @aliases
 #' @examples
 
-combofitnets <- function(
+fitnet_binary <- function(
   data_main,
   target,
-  output = "linear",
+  output = "binary",
   combinations,
   data_trn,
   data_tst,
@@ -39,7 +39,7 @@ combofitnets <- function(
   num_comb <- length(combinations$learning_rate)
   best_net <-list()
 
-  current_mse <- 100
+  current_pccc <- 0
 
   for (i in 1:num_comb) {
     # append current hyperparameters
@@ -52,45 +52,52 @@ combofitnets <- function(
     # treaning net
     net <- nn.train(
       x = as.matrix(data_main),
-      y = as.matrix(target),
+      y = as.matrix(data_main[target]),
       learningrate = learning_rate,
       hidden = rep.int(num_neurons, num_hidden),
       hidden_dropout = dropout_hidden,
-      output = output
+      output = "linear"
     )
 
-    #mse testing
-    mse <- calculate_mse(nn.predict(nn = net, x = data_tst), data_target = data_tst)
-    # mse validate
-    mse_validate <- calculate_mse( nn.predict(nn = net, x = data_vld), data_target = data_vld)
+    #pccc testing
 
-    # change to best mse (testing)
-    if(mse < current_mse) {
+    #yield_tst <- data_tst[target]
+    #mean_tst <- mean(as.matrix(yield_tst))
+    # data_target <- ifelse(yield_tst > mean_tst, 1, 0)
+
+    pccc <- calculate_pccc(predicted = create_binary(nn.predict(nn = net, x = data_tst)), data_target = create_binary(data_tst[target]))
+
+    # pccc validate
+    pccc_validate <- calculate_pccc(predicted = create_binary(nn.predict(nn = net, x = data_vld)), data_target = create_binary(data_vld[target]))
+
+    # change to best pccc (testing)
+    if(pccc > current_pccc) {
       best_net <- net
-      current_mse <- mse
+      current_pccc <- pccc
     }
 
     # Printe current results
-    print(paste(toString(i)," - ", toString(mse)))
-    print(paste(toString(i)," - ", toString(mse_validate), ' [VALIDATE]'))
+    print(paste(toString(i)," - ", toString(pccc)))
+    print(paste(toString(i)," - ", toString(pccc_validate), ' [VALIDATE]'))
 
     # Make data frame report
-    result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, mse, mse_validate)
+    result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, pccc, pccc_validate)
     results <- rbind(results, result)
 
   }
 
   # make csv report
-  results <- sorting_result(results)
+  results <- sorting_result(results, "pccc")
   create_table_results(results, name = toString(paste("report", output, sep = "_")))
 
   # make validation of the best net
-  mse_vld <- calculate_mse(nn.predict(nn = best_net, x = data_vld), data_target = data_vld)
+
+  pccc_vld <- calculate_pccc(predicted = create_binary(nn.predict(nn = best_net, x = data_vld)), data_target = create_binary(data_vld[target]))
 
   # print best net
   print("BEST NET")
-  print(get_best_comb(results))
-  print(paste("VALIDATE - MSE: ", toString(mse_vld)))
+  print(get_best_comb(results, "pccc"))
+  print(paste("VALIDATE - pccc: ", toString(pccc_vld)))
 
   return(results)
 }
