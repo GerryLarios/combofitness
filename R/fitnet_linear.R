@@ -55,8 +55,7 @@ fitnet_linear <- function(
       y = as.matrix(data_main[target]),
       learningrate = learning_rate,
       hidden = rep.int(num_neurons, num_hidden),
-      hidden_dropout = dropout_hidden,
-      output = output
+      hidden_dropout = dropout_hidden
     )
 
     #mse testing
