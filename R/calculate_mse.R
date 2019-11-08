@@ -11,5 +11,5 @@
 #' @examples
 
 calculate_mse <- function(predicted, data_target) {
-  return(mean((data_target[, ncol(data_target)] - predicted)^2))
+  return(mean((data_target - predicted)^2))
 }
