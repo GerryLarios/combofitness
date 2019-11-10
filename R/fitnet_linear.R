@@ -51,17 +51,18 @@ fitnet_linear <- function(
 
     # treaning net
     net <- nn.train(
-      x = as.matrix(data_no_target(data_main, target)),
-      y = as.matrix(data_main[target]),
+      x = as.matrix(data_trn),
+      y = as.matrix(data_trn[target]),
       learningrate = learning_rate,
       hidden = rep.int(num_neurons, num_hidden),
-      hidden_dropout = dropout_hidden
+      hidden_dropout = dropout_hidden,
+      output = "linear"
     )
 
     #mse testing
-    mse <- calculate_mse(nn.predict(nn = net, x = data_no_target(data_tst, target)), data_target = data_tst[target])
+    mse <- calculate_mse(nn.predict(nn = net, x = as.matrix(data_tst)), data_target = as.matrix(data_tst[target]))
     # mse validate
-    mse_validate <- calculate_mse( nn.predict(nn = net, x = data_no_target(data_vld, target)), data_target = data_vld[target])
+    mse_validate <- calculate_mse(nn.predict(nn = net, x = as.matrix(data_vld)), data_target = as.matrix(data_vld[target]))
 
     # change to best mse (testing)
     if(mse < current_mse) {
@@ -84,7 +85,7 @@ fitnet_linear <- function(
   create_table_results(results, name = toString(paste("report", output, sep = "_")))
 
   # make validation of the best net
-  mse_vld <- calculate_mse(nn.predict(nn = best_net, x = data_no_target(data_vld, target)), data_target = data_vld[target])
+  mse_vld <- calculate_mse(nn.predict(nn = best_net, x = as.matrix(data_vld)), data_target = as.matrix(data_vld[target]))
 
   # print best net
   print("BEST NET")
