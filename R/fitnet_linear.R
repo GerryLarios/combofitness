@@ -51,17 +51,23 @@ fitnet_linear <- function(
 
     # treaning net
     net <- nn.train(
-      x = as.matrix(data_no_target(data_main, target)),
-      y = as.matrix(data_main[target]),
+      x = as.matrix(data_no_target(data_trn, target)),
+      y = as.matrix(data_trn[target]),
       learningrate = learning_rate,
       hidden = rep.int(num_neurons, num_hidden),
-      hidden_dropout = dropout_hidden
+      hidden_dropout = dropout_hidden,
+      output = "linear"
     )
 
     #mse testing
-    mse <- calculate_mse(nn.predict(nn = net, x = data_no_target(data_tst, target)), data_target = data_tst[target])
+    tst <- as.matrix(data_no_target(data_tst, target))
+    tst_target <- as.matrix(data_tst[target])
+    mse <- calculate_mse(nn.predict(net, tst), tst_target)
+
     # mse validate
-    mse_validate <- calculate_mse( nn.predict(nn = net, x = data_no_target(data_vld, target)), data_target = data_vld[target])
+    vld <- as.matrix(data_no_target(data_vld, target))
+    vld_target <- as.matrix(data_vld[target])
+    mse_validate <- calculate_mse(nn.predict(net, vld), vld_target)
 
     # change to best mse (testing)
     if(mse < current_mse) {
@@ -71,8 +77,6 @@ fitnet_linear <- function(
 
     # Printe current results
     print(paste(toString(i)," - ", toString(mse)))
-    print(paste(toString(i)," - ", toString(mse_validate), ' [VALIDATE]'))
-
     # Make data frame report
     result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, mse, mse_validate)
     results <- rbind(results, result)
@@ -84,11 +88,12 @@ fitnet_linear <- function(
   create_table_results(results, name = toString(paste("report", output, sep = "_")))
 
   # make validation of the best net
-  mse_vld <- calculate_mse(nn.predict(nn = best_net, x = data_no_target(data_vld, target)), data_target = data_vld[target])
+  vld <- as.matrix(data_no_target(data_vld, target))
+  vld_target <- as.matrix(data_vld[target])
+  mse_vld <- calculate_mse(nn.predict(best_net, vld), vld_target)
 
   # print best net
   print("BEST NET")
-  # print(get_best_comb(results))
   print(paste("VALIDATE - MSE: ", toString(mse_vld)))
 
   return(results)

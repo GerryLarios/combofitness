@@ -16,7 +16,7 @@ build_combinations <- function(
   learning_rate = c(0.01, 0.04, 0.06, 0.1, 0.14),
   num_hidden = c(1, 2, 3, 4, 5),
   num_neurons = c(100, 200, 400, 500),
-  dropout_hidden = seq(0.95, 0.5, -0.05)
+  dropout_hidden = seq(0.5, 0.95, 0.05)
   ) {
   return(
     as.list(
