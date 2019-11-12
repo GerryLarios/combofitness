@@ -72,7 +72,6 @@ fitnet_binary <- function(
 
     # Printe current results
     print(paste(toString(i)," - ", toString(pccc)))
-    print(paste(toString(i)," - ", toString(pccc_validate), ' [VALIDATE]'))
 
     # Make data frame report
     result <- data.frame(id, learning_rate, num_hidden, num_neurons, dropout_hidden, pccc, pccc_validate)
@@ -81,18 +80,14 @@ fitnet_binary <- function(
   }
 
   # make csv report
-  print("RESULTS:")
-  print(head(results, 20))
   results <- sorting_result(results, "pccc", F)
   create_table_results(results, name = toString(paste("report", output, sep = "_")))
 
   # make validation of the best net
-
   pccc_vld <- calculate_pccc(predicted = classify_binary(nn.predict(nn = best_net, x = data_no_target(data_vld, target))), data_target = data_vld[target])
 
   # print best net
   print("BEST NET")
-  # print(get_best_comb(results, "pccc"))
   print(paste("VALIDATE - pccc: ", toString(pccc_vld)))
 
   return(results)
